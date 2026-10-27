@@ -902,14 +902,25 @@ this as a portrait video?... under the 3 mins").
 Mike interviews Ian, a Convex engineer, at a whiteboard (37:45, about 10
 review rounds, `convex-videos/ian-whiteboard-sept-2026/`): a wide camera of
 both, a close-up of Ian, and a mic on Ian that picks up both voices. Its
-cut-offs are in "How Mike likes a take cut", its cold open above.
+cut-offs are in "How Mike likes a take cut", its cold open above. The
+Nipunn interview from the same shoot (40:45,
+`convex-videos/nipunn-whiteboard-sept-2026/`) used everything here and
+needed two review rounds plus the cold open; its `edit-plan.md` is the
+quicker model to copy.
 
 - **Name the angles,** and change angle on a cut: C, Ian's close-up (the
   close-up track on over the wide); W, the wide; W2, a slightly tighter
   wide (`zoomToRegion` {x 0.065, y 0.04, w 0.87, h 0.87}); P, Ian's
   punch-in from the wide ({0, 0, 0.714, 0.714}); M, Mike's single from the
-  wide ({0.375, 0.17, 0.625, 0.625}). Change angle at each jump cut that
-  isn't under B-roll.
+  wide ({0.375, 0.17, 0.625, 0.625}). Change angle at a jump cut that
+  isn't under B-roll, but only once the framing has held about 4 s, and
+  never flash the close-up or P for under 3 s. Changing at every jump cut
+  on the Nipunn interview (same shoot) zoomed between W and W2 every 1 to
+  2 s in quick stretches: "a few too many zoom in and zoom out cuts here
+  and in other places" (2026-10-27). W2 is only 1.14x on W, so cut
+  straight between them it reads as a zoom, not a new angle. Holding 4 s
+  took 302 visible changes down to 175 and he passed it; the tool is
+  `nipunn-whiteboard-sept-2026/.work/angles/fewer.py`.
 - **No slow zooms.** "Is it you that's moving the camera around here?
   Because it's kind of disorientating a little bit", and "I don't think
   it's appropriate necessarily for this video" (2026-10-21). All 77
@@ -933,7 +944,23 @@ cut-offs are in "How Mike likes a take cut", its cold open above.
 - **Handwritten section titles,** writing on like a marker on the
   whiteboard over the camera dimmed behind, as sentence-case questions
   ("Is time a lie in Convex?") with no "08 / 10" counter. Mike picked them
-  from four looks. `motion-graphics` has the build and the timing.
+  from four looks. `motion-graphics` has the build and the timing. Each
+  asks the question on screen at that moment and leaves the answer to the
+  section: "I like these questions but they do give the game away a little
+  bit" (Nipunn interview, 2026-10-27). His model was "What's next for
+  backups?"; six reworded titles followed it, like "How does the log
+  help?". Use the speaker's own question where there is one.
+- **Voice isolation on the interview mic in the first cut.** Ian's Voice
+  clips had Apple voice isolation at 1; Nipunn's went into round 2 at 0
+  and Mike heard the aircon: "have you applied the same sort of sound
+  treatment that we did on the Ian video?" (2026-10-26). Set it on every
+  Voice clip when you first cut the take (it took the hum under 150 Hz
+  down 15 to 60 dB and speech about 1 dB).
+- **Back up the jargon with the real reference.** When they name a term
+  and its history (OLTP and OLAP, "nineteen seventy something"), Mike
+  asked for the Wikipedia page "just to confirm that we got this right".
+  Pick the article whose first paragraph says it plainly and has no
+  fundraising banner or warning boxes over the lead.
 - **Graphics never cover Ian drawing or pointing at the board,** and draw
   things the way he drew them (also in `motion-graphics`).
 - **A review copy for the guest:** `tandem export --preset youtube1080`
