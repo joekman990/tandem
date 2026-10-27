@@ -343,7 +343,13 @@ From his review comments on the Daytona and Build Your Own Convex videos
   starts just after one, or ends just before one, shows a few frames and
   jumps again, "a double jump... it's kind of a bit disorientating" (Ian
   video). Within about 0.75 s, extend the B-roll to the cut, holding its
-  edge frame.
+  edge frame. Check every edge against the take's cuts after placing, not
+  only against word pauses: placing by pauses alone left 11 shots 1 to 17
+  frames off a cut on the batching video, and Mike caught the first 5 s in,
+  "it cuts and then like a few frames later it shows the b-roll... quite
+  distracting" (2026-10-27).
+  `convex-videos/batching-component/.work/edit/snap_broll_to_cuts.py`
+  finds and fixes them from `tandem timeline --json`.
 - **Show what he says.** When he names a thing (a dashboard table, a docs
   page, a claim someone made, a price), put the real thing on screen while
   he says it. A highlight (the $200 free credit) appears when he says it,
