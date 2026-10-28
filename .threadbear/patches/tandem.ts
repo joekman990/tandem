@@ -68,6 +68,17 @@ export default {
       title: 'Tandem',
       note: 'Comments, handback and edits waiting for review',
       badge: async (ctx: Ctx) => sum(await projects(ctx), 'reviews'),
+      // The card at the top of Threadbear's Highlights.
+      summary: async (ctx: Ctx) => {
+        const list = await projects(ctx);
+        const count = (n: number, one: string, many: string) => (n ? `${n} ${n === 1 ? one : many}` : '');
+        const lines = [
+          count(sum(list, 'reviews'), 'edit waiting for your review', 'edits waiting for your review'),
+          count(sum(list, 'handback'), 'place to look at', 'places to look at'),
+          count(sum(list, 'comments'), 'comment for the agent', 'comments for the agent'),
+        ].filter(Boolean);
+        return lines.length ? lines : 'Nothing waiting';
+      },
       items: async (ctx: Ctx) => {
         const list = await projects(ctx);
         const rows: Record<string, unknown>[] = [];
