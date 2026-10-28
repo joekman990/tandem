@@ -49,6 +49,8 @@ function clock(seconds: number): string {
 
 export default {
   appliesTo: '*.tandem',
+  // On each chip, so Tandem's read as Tandem's next to the repo's own.
+  icon: 'film',
   actions: [
     {
       title: 'Your turn',
