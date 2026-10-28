@@ -109,6 +109,9 @@ def db(t):
     return 20 * math.log10(t.pow(2).mean().sqrt().item() + 1e-12)
 
 
+# Once a window runs out of GPU memory, later windows start at the lower count
+# rather than failing at the full one again (a 5090 only fits 2 for a 20 s window).
+rerank = a.rerank
 for spec in a.prompt:
     name, _, desc = spec.partition('=')
     t1 = time.time()
@@ -117,7 +120,6 @@ for spec in a.prompt:
     weight = torch.zeros(1, n)
     for i, s in enumerate(starts):
         seg = x[:, s:s + win]
-        rerank = a.rerank
         while True:
             try:
                 batch = proc(descriptions=[desc], audios=[seg]).to(dev)
