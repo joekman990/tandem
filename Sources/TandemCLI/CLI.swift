@@ -79,6 +79,8 @@ struct CLI {
         switch name {
         case "new":
             return try await newProject(args)
+        case "rename":
+            return try renameProject(args)
         case "effects":
             try args.expectPositionals(atMost: 1, command: name)
             return show(try EffectsResult.catalog(type: args.positionals.first), json: json)
@@ -395,6 +397,37 @@ struct CLI {
         default:
             throw UsageError(message: "There's no `\(name)` command.")
         }
+    }
+
+    /// Rename on the project list, from here: the file, the name Tandem
+    /// shows and the files beside it in .tandem/ (`ProjectRenamer`), then the
+    /// app's memory of it (`ProjectPlaces`), so it stays on Mike's list.
+    private func renameProject(_ args: Arguments) throws -> Int32 {
+        try args.expectPositionals(atMost: 2, command: "rename")
+        guard let last = args.positionals.last else {
+            throw UsageError(message: "`tandem rename` needs the new name, like tandem rename \"01 Read the Code\", or tandem rename \"Read the Code.tandem\" \"01 Read the Code\".")
+        }
+        // The project is named first, or found the way every command finds it.
+        let given = args.positionals.count == 2 ? args.positionals[0] : args.options["project"]
+        let url = try ProjectLocator.find(given, in: directory, environment: environment)
+        var name = last
+        if name.lowercased().hasSuffix(".\(ProjectFile.fileExtension)") { name = String(name.dropLast(ProjectFile.fileExtension.count + 1)) }
+        let renamed = try ProjectRenamer.rename(url, to: name)
+        let domain = ProjectPlaces.domain(environment: environment)
+        if let defaults = ProjectPlaces.defaults(environment: environment) {
+            ProjectPlaces.moved(from: url, to: renamed, in: defaults)
+            defaults.synchronize()
+        }
+        // The app holds its recent list in memory; this has it read the list again.
+        DistributedNotificationCenter.default().postNotificationName(ProjectPlaces.renamedNotification, object: domain, userInfo: nil, deliverImmediately: true)
+        if args.has("json") {
+            StandardOutput.line(String(decoding: try ServiceJSON.encoder(pretty: true).encode(["from": url.path, "to": renamed.path, "name": name]), as: UTF8.self))
+        } else if renamed.path == url.standardizedFileURL.path {
+            StandardOutput.line("\(url.lastPathComponent) is already called \(name).")
+        } else {
+            StandardOutput.line("Renamed \(url.lastPathComponent) to \(renamed.lastPathComponent), with its undo history, journal, review, backups and icon. On the app's project list it keeps its place.")
+        }
+        return 0
     }
 
     private func newProject(_ args: Arguments) async throws -> Int32 {

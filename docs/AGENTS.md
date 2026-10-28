@@ -281,6 +281,7 @@ One line each; `tandem help <command>` has the options and what they do.
 | Command | What it's for |
 | --- | --- |
 | `tandem new <path.tandem>` | a project with Mike's tracks and the folder's media (`--portrait` for a short) |
+| `tandem rename [<project>] <new name>` | rename a project as the app's project list does (closed projects only) |
 | `tandem status` | revision, owner, jobs, review state (`--revision` for just the number) |
 | `tandem media` | files, clip counts, analysis state (`--refresh` scans the folder) |
 | `tandem timeline` | the edit as text (`--summary`, `--from`/`--to`, `--words`, `--json`) |

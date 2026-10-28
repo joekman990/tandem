@@ -17,6 +17,12 @@ enum Help {
                     The canvas is 3840x2160 unless you say otherwise: --portrait makes a 1080x1920 short, --size any other size.
                     It says which file it took for the camera take and why: a record-it -camera file, or a video from a phone or camera (or in source/) with speech and a face in it. Live Photos stay one item each, the still, with its movie in livePhotoVideo.
                     """),
+        CommandHelp(name: "rename", usage: "tandem rename [<project>] <new name>", summary: "Rename a project, as Rename on the app's project list does: the file, the name Tandem shows and everything it keeps beside it.", options: [],
+                    details: """
+                    The .tandem file and the name inside it change, and so do its undo history, journal, agent edits waiting for review, history, backups and project-list icon in .tandem/. Media, cache and exports stay as they are. It keeps its place on the app's project list, and opens where its timeline and window were.
+                    It refuses while the project is open in the app or another tandem command: close it there first. A name can't have / or : in it or start with a full stop; a trailing .tandem is fine.
+                    Without a project it renames the one in this folder, or --project's.
+                    """),
         CommandHelp(name: "status", usage: "tandem status [--revision] [--json]", summary: "Revision, length, unsaved changes, who has it open, undo, background jobs and agent edits waiting for Mike's review.", options: ["revision"],
                     details: "--revision prints just the revision number, to pass to --expect. Read it when you read the timeline you're about to edit, not right before applying, or --expect protects nothing. Tandem finding new files in the folder doesn't make it stale."),
         CommandHelp(name: "media", usage: "tandem media [--refresh]", summary: "Media files, how many clips use each, and analysis status.", options: ["refresh"],

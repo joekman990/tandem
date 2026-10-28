@@ -1,5 +1,6 @@
 import AppKit
 import XCTest
+import TandemAPI
 @testable import TandemApp
 import TandemCore
 
@@ -56,6 +57,30 @@ final class WelcomeMenuTests: XCTestCase {
         editor.settle()
         XCTAssertEqual(editor.model.windowTitle, "Behaviour v2 · Behaviour.tandem")
         XCTAssertEqual(editor.window.title, "Behaviour v2 · Behaviour.tandem", "the Window menu follows a rename")
+    }
+
+    /// `tandem rename` writes the app's memory of a project itself, under
+    /// the same keys, then tells a running app to read its list again.
+    func testTandemRenameWritesWhatTheAppReads() throws {
+        XCTAssertEqual(ProjectPlaces.recentKey, RecentProjects.defaultsKey)
+        XCTAssertEqual(ProjectPlaces.timelinesKey, TimelinePlacement.key)
+        XCTAssertEqual(ProjectPlaces.windowFramesKey, WindowPlacement.projectsKey)
+        let plist = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("../../Resources/Info.plist")
+        let info = try XCTUnwrap(NSDictionary(contentsOf: plist))
+        XCTAssertEqual(ProjectPlaces.appDomain, info["CFBundleIdentifier"] as? String, "the app's defaults domain is its bundle ID")
+
+        let documents = ProjectDocuments()
+        let before = documents.recent
+        let renamed = ["/v/b/01 Better.tandem"]
+        AppDefaults.store.set(renamed, forKey: RecentProjects.defaultsKey)
+        defer { before.save() }
+        let reloaded = expectation(description: "the list is read again")
+        let check = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
+            MainActor.assumeIsolated { if documents.recent.paths == renamed { reloaded.fulfill() } }
+        }
+        defer { check.invalidate() }
+        DistributedNotificationCenter.default().postNotificationName(ProjectPlaces.renamedNotification, object: AppDefaults.suiteName ?? ProjectPlaces.appDomain, userInfo: nil, deliverImmediately: true)
+        wait(for: [reloaded], timeout: 5)
     }
 
     /// A renamed project keeps its place in the list, and its timeline and

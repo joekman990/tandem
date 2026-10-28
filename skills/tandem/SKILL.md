@@ -992,6 +992,11 @@ quicker model to copy.
 - Change the project only through `tandem` (apply, undo, and tools run
   with `--apply`). Never edit `.tandem` files or anything in a `.tandem/`
   folder by hand or with scripts.
+- Rename a project with `tandem rename [<project>] <new name>`, never `mv`:
+  it takes the undo history, journal, review, backups and list icon in
+  `.tandem/` with it and keeps its place on the app's project list (Mike
+  numbering the Abstract Shorts 01 to 04). It refuses while the project is
+  open in the app, so ask Mike to close it first.
 - Never run `open tandem://...` or `tandem url`, and never install, quit
   or restart the Tandem app, or launch it for anything except opening the
   project at hand-back. While it restarts, commands wait for it (up to 90 s).

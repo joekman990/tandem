@@ -42,6 +42,11 @@ Every operation with its CLI command, HTTP endpoint and MCP tool, archiving a fi
 Output paths given to the API are absolute or relative to the project
 folder; the CLI makes them absolute from where you run it.
 
+Renaming a project (`tandem rename [<project>] <new name>`) is CLI only:
+it moves the project file and everything beside it, so it refuses while
+the app, `tandem serve` or another command has the project, and the API
+and MCP only exist while something does.
+
 The asset library isn't a project operation, so it has no HTTP endpoint;
 the CLI and MCP open the library themselves, and only `use`, `credits` and
 the segment `save` and `insert` reach the project (through the app's API

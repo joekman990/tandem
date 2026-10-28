@@ -21,6 +21,22 @@ final class ProjectDocuments: NSObject, NSMenuDelegate {
 
     static let tandemType = UTType(filenameExtension: ProjectFile.fileExtension) ?? .json
 
+    override init() {
+        super.init()
+        // `tandem rename` moves the project's entry in the defaults itself,
+        // then says so; read the list again, or the next save here would put
+        // the old path back.
+        DistributedNotificationCenter.default().addObserver(forName: ProjectPlaces.renamedNotification, object: nil, queue: .main) { [weak self] note in
+            guard (note.object as? String) == (AppDefaults.suiteName ?? ProjectPlaces.appDomain) else { return }
+            MainActor.assumeIsolated { self?.reloadRecent() }
+        }
+    }
+
+    func reloadRecent() {
+        recent = RecentProjects.load()
+        welcome?.refresh()
+    }
+
     // MARK: - Opening
 
     /// Projects waiting for a CLI command or `tandem serve` to let go.
