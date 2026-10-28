@@ -21,10 +21,13 @@ public protocol RenderAssets: Sendable {
     /// The HEVC copy of a file macOS can't decode (`undecodableCodec`),
     /// which plays in its place.
     func convertedURL(for item: MediaItem) -> URL?
+    /// SAM Audio's stems of the file for a prompt, if `tandem separate` made them.
+    func separation(for item: MediaItem, prompt: String) -> SeparationStems?
 }
 
 extension RenderAssets {
     public func convertedURL(for item: MediaItem) -> URL? { nil }
+    public func separation(for item: MediaItem, prompt: String) -> SeparationStems? { nil }
 
     /// Providers without per-mode mattes have one matte for every mode.
     public func matteURL(for item: MediaItem, mode: CutoutMode) -> URL? {

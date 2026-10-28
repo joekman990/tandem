@@ -23,6 +23,14 @@ enum Help {
                     It refuses while the project is open in the app or another tandem command: close it there first. A name can't have / or : in it or start with a full stop; a trailing .tandem is fine.
                     Without a project it renames the one in this folder, or --project's.
                     """),
+        CommandHelp(name: "separate", usage: "tandem separate <media id | clip id | path> [<prompt>...] [--again] [--json]", summary: "Split a file's sound with Meta's SAM Audio into what a prompt describes (\"speech\", \"crowd chatter\", \"background music\") and everything else, on a rented GPU, for clips to mix at their own levels.", options: ["again", "project"],
+                    details: """
+                    It runs on a RunPod RTX 5090 through render-box and costs money: about US$0.30 to US$0.50 for a few minutes of sound, most of it the 10 minutes of setup and loading the model, so give every prompt for a file in one command. Nothing runs by itself; only this command spends.
+                    Prompts are short lowercase noun phrases. Each gives two stems, the prompt's sound and the rest, kept in .tandem/cache/separation/ by file and prompt (archives keep them; the cache never throws them away). A prompt made before is reused unless --again.
+                    A clip plays them with audio.separation, instead of its sound and instead of voiceIsolation: {"prompt": "speech", "target": 1, "residual": 0.3} is the voice with a little of the room under it. The levels are the project's choice: residual 0 isolates the voice completely, which can sound unnatural for a street interview. Until the stems exist the clip plays as if it weren't set, with a warning.
+                    Without prompts it lists what's been separated from the file. The project can be open in the app: this doesn't take it.
+                    Needs render-box (~/dev/me/mikerosoft-tools/render-box) and a Hugging Face read token with access to facebook/sam-audio-large in the Keychain (service huggingface, account token).
+                    """),
         CommandHelp(name: "status", usage: "tandem status [--revision] [--json]", summary: "Revision, length, unsaved changes, who has it open, undo, background jobs and agent edits waiting for Mike's review.", options: ["revision"],
                     details: "--revision prints just the revision number, to pass to --expect. Read it when you read the timeline you're about to edit, not right before applying, or --expect protects nothing. Tandem finding new files in the folder doesn't make it stale."),
         CommandHelp(name: "media", usage: "tandem media [--refresh]", summary: "Media files, how many clips use each, and analysis status.", options: ["refresh"],

@@ -13,6 +13,15 @@ export type AudioProperties = {
   muted?: boolean;
   /** Level the clip to this loudness (LUFS) from its file's measured loudness (within ±30 dB); gainDB goes on top. Speech clips use settings.speechLoudness. */
   normalizeTo?: number;
+  /** Play SAM Audio's separation of the file (made by `tandem separate`) instead of its sound, and instead of voiceIsolation. Null to stop. */
+  separation?: {
+    /** What SAM Audio separated, as given to `tandem separate`: a short lowercase noun phrase like "speech" or "crowd chatter". */
+    prompt: string;
+    /** Gain of everything else, linear. Default 0. 0.15 to 0.5 keeps some of a room under a clean voice. */
+    residual?: number;
+    /** Gain of what the prompt describes, linear: 1 as recorded, 0 silent. Default 1. */
+    target?: number;
+  };
   /** 0 original, 1 fully isolated voice. */
   voiceIsolation?: number;
 };
@@ -278,6 +287,8 @@ export type TimedWord = {
 };
 
 export type Transform = {
+  /** Mirrored left to right about its centre. pipLeft sets it on the camera so Mike faces into the frame. */
+  flipped?: boolean;
   position?: Point;
   /** Degrees clockwise. */
   rotation?: number;

@@ -1288,6 +1288,36 @@ final class EditorBehaviourTests: XCTestCase {
         XCTAssertEqual(editor.clip("Voice").audio?.effects ?? [], [])
     }
 
+    /// A clip an agent gave a SAM Audio separation shows its levels in the
+    /// Audio tab in place of voice isolation, and Play the original stops it
+    /// in one undo step.
+    func testASamSeparationShowsItsLevelsAndStopsWithOneClick() throws {
+        let voice = editor.clip("Voice")
+        editor.model.apply(EditBatch(label: "SAM", commands: [
+            .updateClip(clipID: voice.id, patch: .object(["audio": .object(["separation": .object(["prompt": .string("speech"), "residual": .number(0.3)])])]))
+        ]))
+        editor.settle()
+        XCTAssertEqual(editor.clip("Voice").audio?.separation, AudioSeparation(prompt: "speech", target: 1, residual: 0.3))
+        editor.click(editor.point(of: voice.id))
+        XCTAssertEqual(editor.model.inspectorTab, .audio)
+        editor.settle()
+        XCTAssertNotNil(editor.point(ofTip: "How loud the rest of the sound plays under it"), "the levels show")
+        XCTAssertNil(editor.point(ofTip: "Takes the room out of the voice"), "voice isolation's controls give way")
+
+        // An inspector level change keeps the clip's prompt.
+        editor.model.apply(try XCTUnwrap(InspectorEdits.separation([editor.clip("Voice")], "residual", 0.5, label: "SAM separation level")))
+        editor.settle()
+        XCTAssertEqual(editor.clip("Voice").audio?.separation, AudioSeparation(prompt: "speech", target: 1, residual: 0.5))
+
+        let stop = try XCTUnwrap(editor.point(ofTip: "Stops playing the separation"))
+        editor.click(stop)
+        editor.settle()
+        XCTAssertNil(editor.clip("Voice").audio?.separation)
+        XCTAssertNotNil(editor.point(ofTip: "Takes the room out of the voice"), "voice isolation is back")
+        editor.press("cmd+z")
+        XCTAssertEqual(editor.clip("Voice").audio?.separation?.residual, 0.5)
+    }
+
     // MARK: - Reviewing an agent's edits
 
     func testAnAgentsEditsWaitForReviewAndTheKeysStepThroughThem() throws {

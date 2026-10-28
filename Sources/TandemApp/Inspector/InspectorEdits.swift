@@ -45,6 +45,18 @@ enum InspectorEdits {
         return commands.isEmpty ? nil : EditBatch(label: "Clean up voice", commands: commands)
     }
 
+    /// One SAM separation level on every selected clip that plays one, each
+    /// keeping its own prompt (`field` is "target" or "residual"); nil to
+    /// stop playing the separation. Nil when none of them plays one.
+    static func separation(_ clips: [Clip], _ field: String?, _ value: Double = 0, label: String) -> EditBatch? {
+        let commands: [EditCommand] = clips.compactMap { clip in
+            guard let separation = clip.audio?.separation else { return nil }
+            let patch: JSONValue = field.map { .object(["prompt": .string(separation.prompt), $0: .number(value)]) } ?? .null
+            return .updateClip(clipID: clip.id, patch: .object(["audio": .object(["separation": patch])]))
+        }
+        return commands.isEmpty ? nil : EditBatch(label: label, commands: commands)
+    }
+
     /// Transform fields as a patch. Changing the transform by hand clears
     /// the layout preset name, since it no longer describes the clip.
     static func transform(_ clipID: String, _ transform: Transform, label: String) -> EditBatch {

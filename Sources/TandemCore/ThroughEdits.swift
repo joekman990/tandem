@@ -228,6 +228,7 @@ public enum ThroughEdits {
         if m.muted != n.muted { return "mute" }
         if m.normalizeTo != n.normalizeTo { return "loudness levelling" }
         if m.voiceIsolation != n.voiceIsolation { return "voice isolation" }
+        if m.separation != n.separation { return "SAM separation" }
         if effectIDs(of: n.effects, as: m.effects) == nil { return "audio effects" }
         return "settings"
     }

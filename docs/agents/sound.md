@@ -89,6 +89,57 @@ mic sits around -38 there, so -35; the default, -40, suits a quieter
 room. Keep the clean-up first in the effects, so the compressor and
 limiter work on the cleaned voice.
 
+## Separate a sound with SAM Audio
+
+Apple's isolation is free and instant, but it only knows "voice", and at
+full strength it can sound processed. Meta's SAM Audio separates whatever
+a short prompt describes, from everything else: "speech", "crowd
+chatter", "background music", "a man speaking". On Quinn's handheld mic
+in the Abstract lobby, its speech stem put the lobby 37.5 dB under the
+voice, against 19.4 dB for Apple's isolation at 0.7 (which Mike had
+picked), and kept more of the voice's top end.
+
+It runs on a rented RunPod GPU, so it costs money (about US$0.30 to
+US$0.50 a job, mostly ten minutes of setup and loading the model) and only
+runs when you ask. Give every prompt for a file in one command:
+
+```bash
+tandem separate "audio/Mic - A058C554.wav" speech "crowd chatter"   # 10 to 20 minutes
+tandem separate "audio/Mic - A058C554.wav"                          # what's been made
+```
+
+The stems stay in `.tandem/cache/separation/` by file and prompt, and a
+prompt made before isn't paid for again (`--again` makes it anew). Then
+clips play them, each stem at its own level (linear, 1 as recorded), in
+place of their sound and of `voiceIsolation`:
+
+```json
+{"label": "SAM speech with a little lobby", "commands": [
+  {"updateClip": {"clipIDs": ["clip_mic1", "clip_mic2"], "patch": {"audio": {"separation": {"prompt": "speech", "target": 1, "residual": 0.3}}}}}
+]}
+```
+
+The levels are the project's call, not the tool's. `residual` 0 is the
+voice alone, which Mike called "really good" but unnatural for a street
+interview: there he wants some of the room under it (0.15 to 0.5;
+0.3 measured close to Apple's 0.7). `{"prompt": "crowd chatter", "target":
+0, "residual": 1}` takes only the chatter out; `{"prompt": "music",
+"target": 0.3, "residual": 1}` turns a room's music down. `"separation":
+null` plays the clip's own sound again. A clip whose stems aren't made yet
+plays without them and `tandem timeline` warns, with the command to run.
+
+What to know:
+
+- It's a re-synthesis through the model's codec, not a mask: even the
+  residual isn't the original. Listen to a review clip before handing back.
+- Separating one speaker from another on the same mic works best with a
+  description that tells them apart ("a woman speaking", "a child
+  speaking"). In an October 2026 test of a Mac port, "child speaking"
+  alone picked the adult's voice.
+- It needs render-box (Mike's RunPod runner) and a Hugging Face token with
+  access to `facebook/sam-audio-large` in the Keychain (service
+  `huggingface`, account `token`); both are set up on Mike's Mac.
+
 ## Check the sound
 
 Don't run ffmpeg on a review clip to hear how loud something is. Tandem

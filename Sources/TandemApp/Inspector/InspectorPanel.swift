@@ -597,6 +597,20 @@ struct AudioInspector: View {
                           defaultValue: 0, help: "How long the sound takes to go down to silence at the clip's end (an equal-power curve).",
                           onCommit: { value in model.apply(InspectorEdits.audio(ids, ["fadeOut": .number(value)], label: "Fade out")) })
             }
+            if let separation = audio.separation {
+                // Made by `tandem separate` on a rented GPU; it replaces both the
+                // clip's sound and Apple's isolation, so it takes that section's place.
+                InspectorSection(title: "SAM Audio separation", icon: Icons.voiceIsolation) {
+                    SliderRow(label: separation.prompt.prefix(1).uppercased() + separation.prompt.dropFirst(), value: separation.target * 100, range: 0...200, format: { "\(Int($0.rounded()))%" },
+                              defaultValue: 100, help: "How loud the sound SAM Audio separated by \"\(separation.prompt)\" plays. 100% is as recorded.",
+                              onCommit: { value in if let batch = InspectorEdits.separation(targets, "target", value / 100, label: "SAM separation level") { model.apply(batch) } })
+                    SliderRow(label: "Everything else", value: separation.residual * 100, range: 0...200, format: { "\(Int($0.rounded()))%" },
+                              defaultValue: 0, help: "How loud the rest of the sound plays under it: the room, the crowd, music. 0% leaves only the separated sound, which can sound unnatural for a street interview.",
+                              onCommit: { value in if let batch = InspectorEdits.separation(targets, "residual", value / 100, label: "SAM separation level") { model.apply(batch) } })
+                    OutlineButton(title: "Play the original") { if let batch = InspectorEdits.separation(targets, nil, label: "Stop SAM separation") { model.apply(batch) } }
+                        .tip("Stops playing the separation: the clip plays its own sound (and its voice isolation) again. The stems stay in the cache.")
+                }
+            } else {
             InspectorSection(title: "Voice isolation", icon: Icons.voiceIsolation) {
                 SliderRow(label: "Amount", value: audio.voiceIsolation * 100, range: 0...100, format: { "\(Int($0.rounded()))%" },
                           defaultValue: 0, help: "How much of the isolated voice (room noise and music taken out) replaces the original sound. 0% is the original.",
@@ -605,6 +619,7 @@ struct AudioInspector: View {
                     OutlineButton(title: "Clean up voice") { model.apply(cleanUp) }
                         .tip("Takes the room out of the voice: isolates it in full and adds Voice clean-up, a high-pass for rumble and an expander that turns the room down between words, as one undo step. macOS has no de-reverb, and isolation is the closest it comes.")
                 }
+            }
             }
             EffectStack(model: model, clip: first, domain: .audio, excludeCategories: [])
         } else {

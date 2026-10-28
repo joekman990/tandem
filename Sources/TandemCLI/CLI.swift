@@ -2,6 +2,7 @@ import Foundation
 import TandemAPI
 import TandemAssets
 import TandemCore
+import TandemMedia
 import TandemRender
 
 /// The `tandem` command. Each subcommand builds a service request, sends
@@ -81,6 +82,8 @@ struct CLI {
             return try await newProject(args)
         case "rename":
             return try renameProject(args)
+        case "separate":
+            return try await separate(args)
         case "effects":
             try args.expectPositionals(atMost: 1, command: name)
             return show(try EffectsResult.catalog(type: args.positionals.first), json: json)
@@ -428,6 +431,65 @@ struct CLI {
             StandardOutput.line("Renamed \(url.lastPathComponent) to \(renamed.lastPathComponent), with its undo history, journal, review, backups and icon. On the app's project list it keeps its place.")
         }
         return 0
+    }
+
+    /// SAM Audio on a rented GPU (`Separator`): the file and the prompts, and
+    /// how to play the result. Reads the project without taking it, so it runs
+    /// while the app has it open; the stems land in the cache, and a clip's
+    /// `audio.separation` (an ordinary edit) plays them.
+    private func separate(_ args: Arguments) async throws -> Int32 {
+        let json = args.has("json")
+        guard let reference = args.positionals.first else {
+            throw UsageError(message: "`tandem separate` needs a file and what to separate, like tandem separate \"audio/Mic.wav\" speech \"crowd chatter\".")
+        }
+        let url = try project(args)
+        let (loaded, _) = try ProjectFile.load(from: url)
+        let folder = ProjectFolder(root: url.deletingLastPathComponent())
+        let item = try Self.separationMedia(reference, in: loaded, folder: folder, directory: directory)
+        let prompts = Array(args.positionals.dropFirst())
+        let store = SeparationStore(folder: folder)
+        if prompts.isEmpty {
+            // Just say what's been made already.
+            let made = MediaAnalysis(folder: folder).separationFingerprint(for: item).map { store.all(fingerprint: $0) } ?? []
+            if json {
+                StandardOutput.line(String(decoding: try ServiceJSON.encoder(pretty: true).encode(made), as: UTF8.self))
+            } else if made.isEmpty {
+                StandardOutput.line("\(item.path) hasn't been separated yet. Give prompts, like tandem separate \"\(item.path)\" speech.")
+            } else {
+                for info in made { StandardOutput.line("\"\(info.prompt)\": made \(info.created.formatted(date: .abbreviated, time: .shortened))\(info.costUSD.map { String(format: ", about US$%.2f", $0) } ?? "")") }
+            }
+            return 0
+        }
+        let outcomes = try await Separator(folder: folder, environment: environment).separate(item, prompts: prompts, again: args.has("again")) { line in
+            if !json { FileHandle.standardError.write(Data(("  " + line + "\n").utf8)) }
+        }
+        if json {
+            StandardOutput.line(String(decoding: try ServiceJSON.encoder(pretty: true).encode(outcomes), as: UTF8.self))
+            return 0
+        }
+        for outcome in outcomes {
+            let how = outcome.reused ? "already made" : "made\(outcome.gpu.map { " on an \($0)" } ?? "")"
+            StandardOutput.line("\"\(outcome.prompt)\" from \(item.path): \(how).")
+        }
+        let spent = outcomes.filter { !$0.reused }.compactMap(\.costUSD).reduce(0, +)
+        if spent > 0 { StandardOutput.line(String(format: "The pod cost about US$%.2f.", spent)) }
+        let example = outcomes.first?.prompt ?? "speech"
+        StandardOutput.line("""
+        Play it on clips of this file with audio.separation: the prompt's sound and everything else, each at its own level (1 as recorded, 0 silent), for example
+          {"updateClip": {"clipIDs": [...], "patch": {"audio": {"separation": {"prompt": "\(example)", "target": 1, "residual": 0.3}}}}}
+        """)
+        return 0
+    }
+
+    /// The file `tandem separate` means: a media ID, a clip's ID (its file), or a path.
+    static func separationMedia(_ reference: String, in project: Project, folder: ProjectFolder, directory: URL) throws -> MediaItem {
+        if let item = project.media.first(where: { $0.id == reference }) { return item }
+        if let clip = project.allTracks.flatMap(\.clips).first(where: { $0.id == reference }), let id = clip.mediaID,
+           let item = project.media.first(where: { $0.id == id }) { return item }
+        let expanded = NSString(string: reference).expandingTildeInPath
+        let absolute = (expanded.hasPrefix("/") ? URL(fileURLWithPath: expanded) : directory.appendingPathComponent(expanded)).standardizedFileURL
+        if let item = project.media.first(where: { folder.url(for: $0).standardizedFileURL == absolute || $0.path == reference }) { return item }
+        throw ServiceError(.notFound, "\(reference) isn't a file in the project. Give its media ID, a clip ID, or its path (tandem media lists them).")
     }
 
     private func newProject(_ args: Arguments) async throws -> Int32 {

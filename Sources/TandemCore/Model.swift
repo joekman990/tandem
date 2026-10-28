@@ -634,6 +634,11 @@ public struct AudioProperties: Codable, Equatable, Sendable {
     /// 0 is the original audio, 1 is fully isolated voice. Mixed live from
     /// the cached isolated track.
     public var voiceIsolation: Double
+    /// Plays SAM Audio's separation of the file instead of its sound: the
+    /// prompt's stem and everything else, each at its own level. Made on a
+    /// rented GPU by `tandem separate`; until it is, the clip plays as if
+    /// this weren't set.
+    public var separation: AudioSeparation?
     /// Audio effects in order, for example a pitch shift.
     public var effects: [Effect]
 
@@ -644,6 +649,7 @@ public struct AudioProperties: Codable, Equatable, Sendable {
         muted: Bool = false,
         normalizeTo: Double? = nil,
         voiceIsolation: Double = 0,
+        separation: AudioSeparation? = nil,
         effects: [Effect] = []
     ) {
         self.gainDB = gainDB
@@ -652,7 +658,24 @@ public struct AudioProperties: Codable, Equatable, Sendable {
         self.muted = muted
         self.normalizeTo = normalizeTo
         self.voiceIsolation = voiceIsolation
+        self.separation = separation
         self.effects = effects
+    }
+}
+
+/// A clip's mix of a SAM Audio separation: `target` is the gain of what the
+/// prompt describes ("speech"), `residual` the gain of everything else, both
+/// linear (1 as recorded, 0 silent, up to 2). Speech at 1 with the rest at
+/// 0.3 keeps some of a room's atmosphere under a clean voice.
+public struct AudioSeparation: Codable, Equatable, Sendable {
+    public var prompt: String
+    public var target: Double
+    public var residual: Double
+
+    public init(prompt: String, target: Double = 1, residual: Double = 0) {
+        self.prompt = prompt
+        self.target = target
+        self.residual = residual
     }
 }
 
@@ -1248,6 +1271,7 @@ extension AudioProperties {
         muted = try c.decode(.muted, or: false)
         normalizeTo = try c.decodeIfPresent(Double.self, forKey: .normalizeTo)
         voiceIsolation = try c.decode(.voiceIsolation, or: 0)
+        separation = try c.decodeIfPresent(AudioSeparation.self, forKey: .separation)
         effects = try c.decode(.effects, or: [])
     }
 }
@@ -1373,5 +1397,14 @@ extension TransitionType {
         case .wipe: return Time(seconds: 0.6)
         case .zoom: return Time(seconds: 0.5)
         }
+    }
+}
+
+extension AudioSeparation {
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        prompt = try c.decode(String.self, forKey: .prompt)
+        target = try c.decode(.target, or: 1)
+        residual = try c.decode(.residual, or: 0)
     }
 }

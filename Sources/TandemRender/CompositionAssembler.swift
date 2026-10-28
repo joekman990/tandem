@@ -175,6 +175,8 @@ enum CompositionAssembler {
                 return context.assets?.matteURL(for: item, cutout: cutout)
             case .sound: return context.folder.url(for: item)
             case .isolatedVoice: return context.assets?.isolatedVoiceURL(for: item)
+            case .separationTarget(let prompt): return context.assets?.separation(for: item, prompt: prompt)?.target
+            case .separationResidual(let prompt): return context.assets?.separation(for: item, prompt: prompt)?.residual
             }
         }
         var sources: [URL: LoadedSource] = [:]

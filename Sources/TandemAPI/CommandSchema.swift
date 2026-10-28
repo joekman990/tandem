@@ -311,6 +311,11 @@ extension CommandSchema {
         "muted": S.boolean(),
         "normalizeTo": S.number("Level the clip to this loudness (LUFS) from its file's measured loudness (within ±30 dB); gainDB goes on top. Speech clips use settings.speechLoudness."),
         "voiceIsolation": S.number("0 original, 1 fully isolated voice.", minimum: 0, maximum: 1),
+        "separation": S.object([
+            "prompt": S.string("What SAM Audio separated, as given to `tandem separate`: a short lowercase noun phrase like \"speech\" or \"crowd chatter\"."),
+            "target": S.number("Gain of what the prompt describes, linear: 1 as recorded, 0 silent. Default 1.", minimum: 0, maximum: 2),
+            "residual": S.number("Gain of everything else, linear. Default 0. 0.15 to 0.5 keeps some of a room under a clean voice.", minimum: 0, maximum: 2)
+        ], required: ["prompt"], "Play SAM Audio's separation of the file (made by `tandem separate`) instead of its sound, and instead of voiceIsolation. Null to stop."),
         "effects": S.array(S.ref("Effect"))
     ])
 

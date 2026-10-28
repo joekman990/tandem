@@ -376,7 +376,11 @@ public enum TimelineDump {
             if let target = audio.normalizeTo { parts.append("level \(decibels(target)) LUFS") }
             if audio.fadeIn > .zero { parts.append("fade in \(TimeText.duration(audio.fadeIn))") }
             if audio.fadeOut > .zero { parts.append("fade out \(TimeText.duration(audio.fadeOut))") }
-            if audio.voiceIsolation > 0 { parts.append("isolate voice \(num(audio.voiceIsolation))") }
+            if let separation = audio.separation {
+                parts.append("SAM \"\(separation.prompt)\" \(num(separation.target)), rest \(num(separation.residual))")
+            } else if audio.voiceIsolation > 0 {
+                parts.append("isolate voice \(num(audio.voiceIsolation))")
+            }
             if !audio.effects.isEmpty { parts.append("fx " + audio.effects.map(effectName).joined(separator: ",")) }
         }
         if case .text(let text) = clip.content {

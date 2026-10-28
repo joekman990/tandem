@@ -246,7 +246,9 @@ rest ([Join through-edits](cutting.md#join-through-edits)).
 The patch can change any clip field: `video.transform` (position, scale,
 rotation), `video.crop`, `video.opacity`, `video.cutout`, `audio.gainDB`,
 `audio.fadeIn`, `audio.fadeOut`, `audio.normalizeTo`,
-`audio.voiceIsolation` (0 original to 1 fully isolated), a title's
+`audio.voiceIsolation` (0 original to 1 fully isolated),
+`audio.separation` (SAM Audio stems at their own levels, made by
+`tandem separate`; [sound.md](sound.md#separate-a-sound-with-sam-audio)), a title's
 `content.text`, a graphic's `content.graphic.props`, `enabled`, `name`,
 `tags`... `tandem schema` has every field of `VideoProperties` and
 `AudioProperties`.

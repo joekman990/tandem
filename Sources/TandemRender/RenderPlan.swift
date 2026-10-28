@@ -19,6 +19,9 @@ struct PlannedSegment: Equatable {
         case sound
         /// The cached isolated voice for an audio clip.
         case isolatedVoice
+        /// SAM Audio's stem for a prompt, and everything else.
+        case separationTarget(String)
+        case separationResidual(String)
     }
 
     var clipID: String
@@ -266,7 +269,13 @@ enum RenderPlanner {
                         warnings.add("No loudness measurement for \(item.path) yet, so it isn't normalised.")
                     }
                 }
-                let isolation = min(max(audio.voiceIsolation, 0), 1)
+                // A separation, once its stems exist, replaces the clip's
+                // sound (and Apple's isolation) entirely.
+                let separation = audio.separation.flatMap { s in assets?.separation(for: item, prompt: s.prompt).map { _ in s } }
+                if let wanted = audio.separation, separation == nil {
+                    warnings.add("No SAM Audio separation of \(item.path) by \"\(wanted.prompt)\" yet, so it plays without it: `tandem separate \"\(item.path)\" \"\(wanted.prompt)\"` makes it.")
+                }
+                let isolation = separation == nil ? min(max(audio.voiceIsolation, 0), 1) : 0
                 let isolated = isolation > 0 && assets?.isolatedVoiceURL(for: item) != nil
                 if isolation > 0 && !isolated {
                     warnings.add("No isolated voice for \(item.path) yet, playing the original.")
@@ -284,6 +293,17 @@ enum RenderPlanner {
                     envelope: AudioEnvelope.points(shape, constantGain: constant * (isolated ? 1 - isolation : 1)),
                     levelDB: levelDB
                 )
+                if let separation {
+                    let levels = [(PlannedSegment.Role.separationTarget(separation.prompt), separation.target),
+                                  (.separationResidual(separation.prompt), separation.residual)]
+                    for (role, level) in levels where level > 0 {
+                        var stem = original
+                        stem.role = role
+                        stem.envelope = AudioEnvelope.points(shape, constantGain: constant * min(level, 2))
+                        audioSegments.append(stem)
+                    }
+                    continue
+                }
                 if !isolated || isolation < 1 {
                     audioSegments.append(original)
                 }
@@ -352,7 +372,7 @@ enum RenderPlanner {
               abs((a.sourceEnd - b.sourceStart).flicks) <= Time.flicksPerSample48k else { return false }
         let x = a.audio ?? AudioProperties()
         let y = b.audio ?? AudioProperties()
-        return x.gainDB == y.gainDB && x.normalizeTo == y.normalizeTo && x.voiceIsolation == y.voiceIsolation
+        return x.gainDB == y.gainDB && x.normalizeTo == y.normalizeTo && x.voiceIsolation == y.voiceIsolation && x.separation == y.separation
             && x.effects.map(\.withoutID) == y.effects.map(\.withoutID)
             && x.fadeOut == .zero && y.fadeIn == .zero
             && a.keyframes["audio.gainDB"] == nil && b.keyframes["audio.gainDB"] == nil

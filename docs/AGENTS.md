@@ -313,6 +313,7 @@ One line each; `tandem help <command>` has the options and what they do.
 | `tandem clip <start> <end>` | a review MP4, some tracks, or the sound alone |
 | `tandem export` | the video, loudness matched (`--preset`) |
 | `tandem loudness` | file levels, or the mix over time (`--gains`) |
+| `tandem separate <file> "<prompt>"...` | SAM Audio stems on a rented GPU, for `audio.separation` (costs money) |
 | `tandem effects` | effects, transitions, layouts, animatable parameters |
 | `tandem schema` | the edit batch JSON schema |
 | `tandem watch` | print changes as they happen (`--once` waits for one) |

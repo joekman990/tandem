@@ -17,6 +17,7 @@ folder. `ARCHITECTURE.md` is the contract; this is the detail behind it.
 | `MediaAnalysis.swift` | The public face: cached reads, requests, state |
 | `AnalysisSettings.swift` | Per-kind settings and algorithm versions |
 | `AudioJobs.swift`, `ThumbnailJob.swift`, `VideoIO.swift` (proxy), `TranscriptJob.swift`, `MatteJob.swift`, `IsolatedVoiceJob.swift`, `ConvertJob.swift` | The analyses |
+| `SeparationStore.swift` | SAM Audio stems by file and prompt (`.tandem/cache/separation/`), made only by `tandem separate` on a rented GPU, never in the background, never evicted |
 | `FFmpeg.swift`, `HEVCTranscoder.swift` | ffmpeg, and video macOS can't decode to HEVC with alpha (shared with the asset library) |
 | `EncodedMovieWriter.swift` | VideoToolbox into AVAssetWriter, exact frame times |
 | `LoudnessMeter.swift`, `EncoderLock.swift` | BS.1770 meter (Accelerate), shared encoder lock |

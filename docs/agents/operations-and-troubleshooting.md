@@ -42,6 +42,11 @@ Every operation with its CLI command, HTTP endpoint and MCP tool, archiving a fi
 Output paths given to the API are absolute or relative to the project
 folder; the CLI makes them absolute from where you run it.
 
+`tandem separate` is CLI only too: it runs on a rented GPU through
+render-box for 10 to 20 minutes and writes the project's cache, not the
+project, so it works while the app has the project open. Clips use its
+stems through `audio.separation`, an ordinary edit.
+
 Renaming a project (`tandem rename [<project>] <new name>`) is CLI only:
 it moves the project file and everything beside it, so it refuses while
 the app, `tandem serve` or another command has the project, and the API

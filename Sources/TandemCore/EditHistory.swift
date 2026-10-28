@@ -321,6 +321,10 @@ public enum ClipChanges {
             details.append("level \(a.normalizeTo.map { "\(number($0)) LUFS" } ?? "off") -> \(b.normalizeTo.map { "\(number($0)) LUFS" } ?? "off")")
         }
         if a.voiceIsolation != b.voiceIsolation { details.append("voice isolation \(number(a.voiceIsolation)) -> \(number(b.voiceIsolation))") }
+        if a.separation != b.separation {
+            let describe: (AudioSeparation?) -> String = { s in s.map { "\"\($0.prompt)\" \(number($0.target))/\(number($0.residual))" } ?? "off" }
+            details.append("SAM separation \(describe(a.separation)) -> \(describe(b.separation))")
+        }
         if a.effects != b.effects { details.append(effectChange(a.effects, b.effects, what: "audio effects")) }
         if details.isEmpty { details.append("sound settings") }
         return details

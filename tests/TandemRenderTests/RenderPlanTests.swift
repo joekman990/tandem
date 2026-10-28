@@ -18,6 +18,8 @@ final class FakeAssets: RenderAssets, @unchecked Sendable {
     func matteURL(for item: MediaItem) -> URL? { mattes[item.id] }
     func matteURL(for item: MediaItem, mode: CutoutMode) -> URL? { mode == .person ? personMattes[item.id] : mattes[item.id] }
     func isolatedVoiceURL(for item: MediaItem) -> URL? { voices[item.id] }
+    var separations: [String: SeparationStems] = [:]
+    func separation(for item: MediaItem, prompt: String) -> SeparationStems? { separations["\(item.id)|\(prompt)"] }
     func loudness(for item: MediaItem) -> Loudness? { loudnesses[item.id] }
 }
 
@@ -452,6 +454,40 @@ final class RenderPlanTests: XCTestCase {
         voiceClip.audio = AudioProperties(voiceIsolation: 1)
         let full = RenderPlanner.plan(project(video: [], audio: [Track(kind: .audio, name: "Voice", clips: [voiceClip])]), format: nil, assets: assets)
         XCTAssertEqual(full.audioSegments.map(\.role), [.isolatedVoice])
+    }
+}
+
+extension RenderPlanTests {
+    /// SAM Audio stems replace the clip's sound: the separated target and
+    /// everything else, each at the clip's own level, levelling on top.
+    func testSeparationMixesTheStemsAtTheClipsLevels() {
+        var voiceClip = mediaClip("clip_v", "med_cam", start: 0, duration: 4)
+        voiceClip.audio = AudioProperties(normalizeTo: -20, voiceIsolation: 0.7, separation: AudioSeparation(prompt: "speech", target: 1, residual: 0.3))
+        let assets = FakeAssets()
+        assets.loudnesses["med_cam"] = Loudness(integratedLUFS: -26, truePeakDBTP: -8, loudnessRange: 5)
+        assets.voices["med_cam"] = URL(fileURLWithPath: "/tmp/voice.wav")
+        assets.separations["med_cam|speech"] = SeparationStems(target: URL(fileURLWithPath: "/tmp/t.wav"), residual: URL(fileURLWithPath: "/tmp/r.wav"))
+        let voice = [Track(kind: .audio, name: "Voice", clips: [voiceClip])]
+        let plan = RenderPlanner.plan(project(video: [], audio: voice), format: nil, assets: assets)
+        // Separation wins over Apple's isolation: only the two stems play.
+        XCTAssertEqual(plan.audioSegments.map(\.role), [.separationTarget("speech"), .separationResidual("speech")])
+        let level = pow(10, 6.0 / 20)
+        XCTAssertEqual(gainAt(plan.audioSegments[0].envelope, t(2)), level, accuracy: 1e-9)
+        XCTAssertEqual(gainAt(plan.audioSegments[1].envelope, t(2)), 0.3 * level, accuracy: 1e-9)
+        XCTAssertNotEqual(plan.audioSegments[0].track, plan.audioSegments[1].track)
+        XCTAssertTrue(plan.warnings.allSatisfy { !$0.contains("separ") })
+
+        // A residual of 0 plays the target alone.
+        voiceClip.audio = AudioProperties(separation: AudioSeparation(prompt: "speech", target: 1, residual: 0))
+        let alone = RenderPlanner.plan(project(video: [], audio: [Track(kind: .audio, name: "Voice", clips: [voiceClip])]), format: nil, assets: assets)
+        XCTAssertEqual(alone.audioSegments.map(\.role), [.separationTarget("speech")])
+
+        // No stems for that prompt yet: the clip plays as it would without
+        // separation (here the isolated voice) and says how to make them.
+        voiceClip.audio = AudioProperties(voiceIsolation: 1, separation: AudioSeparation(prompt: "crowd chatter", target: 0, residual: 1))
+        let missing = RenderPlanner.plan(project(video: [], audio: [Track(kind: .audio, name: "Voice", clips: [voiceClip])]), format: nil, assets: assets)
+        XCTAssertEqual(missing.audioSegments.map(\.role), [.isolatedVoice])
+        XCTAssertTrue(missing.warnings.contains { $0.contains("tandem separate") && $0.contains("crowd chatter") }, "\(missing.warnings)")
     }
 }
 

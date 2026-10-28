@@ -992,6 +992,13 @@ quicker model to copy.
 - Change the project only through `tandem` (apply, undo, and tools run
   with `--apply`). Never edit `.tandem` files or anything in a `.tandem/`
   folder by hand or with scripts.
+- When Apple's voice isolation isn't enough, or you need to pull out or
+  keep something else (crowd chatter, room music, one speaker), use SAM
+  Audio: `tandem separate <file> "<prompt>"...` (all prompts in one
+  command: each run rents a GPU, about US$0.30 to US$0.50), then
+  `audio.separation` on the clips with levels chosen for the video. For a
+  street interview keep some room under the voice (residual 0.15 to 0.5);
+  the voice alone sounds unnatural there. docs/agents/sound.md has it.
 - Rename a project with `tandem rename [<project>] <new name>`, never `mv`:
   it takes the undo history, journal, review, backups and list icon in
   `.tandem/` with it and keeps its place on the app's project list (Mike
