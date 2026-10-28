@@ -49,8 +49,9 @@ function clock(seconds: number): string {
 
 export default {
   appliesTo: '*.tandem',
-  // On each chip, so Tandem's read as Tandem's next to the repo's own.
-  icon: 'film',
+  // Tandem's own app icon, on each chip and on the panel's rail button, so
+  // Tandem's tools read as Tandem's at a glance next to a repo's own.
+  icon: '../../icons/tandem.png',
   actions: [
     {
       title: 'Your turn',
@@ -65,7 +66,6 @@ export default {
   panels: [
     {
       title: 'Tandem',
-      icon: 'film',
       note: 'Comments, handback and edits waiting for review',
       badge: async (ctx: Ctx) => sum(await projects(ctx), 'reviews'),
       items: async (ctx: Ctx) => {
