@@ -88,7 +88,7 @@ struct WelcomeView: View {
                 Text("Tandem")
                     .font(.ui(28, .bold))
                     .foregroundStyle(Theme.text.color)
-                Text("Edit Convex videos with your agents.")
+                Text("Edit your videos with your agents.")
                     .font(.ui(12.5))
                     .foregroundStyle(Theme.textMuted.color)
                     .padding(.top, 4)
