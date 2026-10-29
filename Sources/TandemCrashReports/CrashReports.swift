@@ -3,8 +3,8 @@ import Foundation
 import Sentry
 #endif
 
-/// Sends crashes from the installed Tandem to Sentry (project `tandem`), so
-/// Mike's watcher hears about a crash without anyone having to mention it.
+/// Crash reporting is disabled in this personal fork by an empty destination.
+/// The upstream implementation is retained for compatibility.
 ///
 /// Only the release app in ~/Applications (or /Applications), and the
 /// `tandem` command inside it, ever report. Agents build and run Tandem all
@@ -17,12 +17,13 @@ import Sentry
 /// rather than to Sentry. No tracing, sessions or network breadcrumbs.
 public enum CrashReports {
     /// A Sentry DSN is a public client key; it ships inside the app anyway.
-    static let dsn = "https://ab6630bea33fc780aa4fdc232ab16747@o4508736647266304.ingest.us.sentry.io/4512336956555264"
+    static let dsn = "" // Personal fork: never send crashes to the upstream account.
 
     /// `component` is `mac` for the app and `cli` for the `tandem` command,
     /// so the watcher can tell them apart.
     public static func start(component: String) {
         #if !DEBUG
+        guard !dsn.isEmpty else { return }
         let bundle = Bundle.main
         guard shouldReport(bundleURL: bundle.bundleURL, environment: ProcessInfo.processInfo.environment) else { return }
         let release = releaseName(info: bundle.infoDictionary ?? [:])

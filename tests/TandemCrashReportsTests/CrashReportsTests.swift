@@ -5,6 +5,10 @@ import XCTest
 /// builds, tests and staged copies all day, and none of those should reach
 /// Sentry.
 final class CrashReportsTests: XCTestCase {
+    func testForkHasNoUpstreamTelemetryDestination() {
+        XCTAssertTrue(CrashReports.dsn.isEmpty)
+    }
+
     let home = URL(fileURLWithPath: "/Users/someone", isDirectory: true)
 
     func testOnlyTheInstalledAppCounts() {

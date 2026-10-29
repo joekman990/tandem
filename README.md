@@ -10,26 +10,13 @@ macOS
 
 ## What it is
 
-This is the video editor I'm building for my Convex videos to replace Filmora. It's built so my agents can edit the same project as me, through a CLI and an MCP server, while I work in the app.
+This is Joseph Karman's personal fork of [Mike Cann's Tandem](https://github.com/mikecann/tandem), a local macOS video editor shared with AI agents through its CLI and MCP server.
 
-A project is just a `.tandem` JSON file in the video's folder. Tandem finds the media there, pairs up my Record It camera and screen takes, and does transcripts, waveforms and the cutout in the background.
-
-![Tandem editing the decision-models video](docs/header.jpg)
+Projects are `.tandem` JSON files beside your media. Start with a copy of your footage in a dedicated folder, then create a project with `tandem new Video.tandem`.
 
 ## Get it
 
-Paste this into your AI coding agent (Claude Code, Codex, Cursor...):
-
-> Fork https://github.com/mikecann/tandem to my GitHub account and clone my fork
-> (if I don't use GitHub, or want to keep my copy private, just clone it instead),
-> then make it my own. It's one of Mike Cann's personal tools, so read the README
-> first, change anything specific to his setup to suit mine, then help me get it
-> running.
-
-Heads up, I'm not taking issues or pull requests on this one, so only I can open
-them. It's built around my setup and I don't want to be the one deciding what goes
-in, or accidentally breaking your version when I change something. Fork it and have
-your agent make it your own instead.
+This fork lives at https://github.com/joekman990/tandem. `origin` points to this fork; `upstream` points to Mike's repository. Review upstream changes before merging them.
 
 ### Or set it up by hand
 
@@ -42,7 +29,7 @@ progress. Install ffmpeg if you want to
 import formats macOS can't decode, such as WebM (`brew install ffmpeg`).
 
 ```bash
-git clone https://github.com/mikecann/tandem.git
+git clone https://github.com/joekman990/tandem.git
 cd tandem
 bash setup_mac.sh
 bash install.sh
@@ -65,10 +52,7 @@ Tandem doesn't read `.env` files or need API keys to edit local media.
 Optional asset providers use macOS Keychain. `tandem assets providers` tells
 you what's missing, and [the asset guide](docs/ASSETS.md) covers setup.
 
-The release app in `~/Applications` (or `/Applications`) and the `tandem`
-command inside it send anonymous crash reports to Sentry: stack traces and
-the Mac's model and macOS version, nothing from your projects or media.
-Debug builds, tests, CI and copies anywhere else send nothing.
+Crash reporting and Sentry debug-symbol uploads are disabled in this fork. No provider keys are required for local editing.
 
 ## Using it
 
@@ -91,8 +75,7 @@ claude mcp add tandem -- ~/Applications/Tandem.app/Contents/MacOS/tandem mcp
 
 Old Filmora projects import with `tandem import filmora "Video v3.wfp"`.
 Agent EDLs import with `tandem import edl edit.json --recipe decision-models`.
-That recipe has paths and settings for my Decision Models video, so change
-it for your footage or add your own. The [agent guide](docs/AGENTS.md) is
+That recipe is an upstream example specific to Mike's footage. Do not use it for your own media without adapting its paths and settings. The [agent guide](docs/AGENTS.md) is
 the entry point for agents; its topic files in `docs/agents/` have the
 recipes, import options and troubleshooting.
 
@@ -145,7 +128,7 @@ test, which may install a language model and needs macOS 26.
 
 ## More tools
 
-You can find my other tools at [mikerosoft.app](https://mikerosoft.app).
+You can find the original author’s other tools at [mikerosoft.app](https://mikerosoft.app).
 
 MIT licensed. See [LICENSE](LICENSE). Bundled fonts and other third-party
 assets retain their own licences, which ship alongside them.

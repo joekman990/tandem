@@ -99,31 +99,4 @@ mv "$APP_DIR" "$FINAL_DIR"
 rm -rf "$OLD_DIR"
 echo "Built $FINAL_DIR"
 
-# Sentry needs the debug symbols to show function names in crash reports.
-# Only the release app installed for Mike reports crashes (see
-# CrashReports.isInstalledApp), so only that build uploads them. This never
-# fails the build: no sentry-cli or token skips it, a failed upload warns.
-upload_debug_symbols() {
-  local cli token binary dsyms=()
-  cli="$(command -v sentry-cli || true)"
-  if [[ -z "$cli" && -x "$HOME/.local/bin/sentry-cli" ]]; then cli="$HOME/.local/bin/sentry-cli"; fi
-  token="${SENTRY_AUTH_TOKEN:-}"
-  if [[ -z "$token" && -r "$HOME/.config/sentry/token" ]]; then token="$(tr -d '[:space:]' < "$HOME/.config/sentry/token")"; fi
-  if [[ -z "$cli" || -z "$token" ]]; then
-    echo "Debug symbols not uploaded to Sentry (no sentry-cli or no token)."
-    return 0
-  fi
-  # SwiftPM release builds don't make a dSYM; dsymutil gathers one from the
-  # object files the binary points at.
-  for binary in tandem-app tandem; do
-    if dsymutil "$BIN_DIR/$binary" -o "$BIN_DIR/$binary.dSYM"; then dsyms+=("$BIN_DIR/$binary.dSYM"); fi
-  done
-  if [[ ${#dsyms[@]} -eq 0 ]] \
-    || ! SENTRY_AUTH_TOKEN="$token" "$cli" debug-files upload --org mikec --project tandem "${dsyms[@]}"; then
-    echo "WARNING: debug symbols weren't uploaded to Sentry; crash reports from this build won't show function names."
-  fi
-}
-if [[ "$BUILD_CONFIGURATION" == "release" \
-  && ( "$FINAL_DIR" == "$HOME/Applications/$APP_NAME.app" || "$FINAL_DIR" == "/Applications/$APP_NAME.app" ) ]]; then
-  upload_debug_symbols || true
-fi
+# Personal fork: no debug-symbol uploads to the upstream Sentry account.
